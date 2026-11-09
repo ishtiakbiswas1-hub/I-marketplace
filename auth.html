@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account - I Marketplaces</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#f4f7f3;color:#173c2c}
+.container{max-width:420px;margin:55px auto;padding:20px}
+.card{background:white;padding:28px;border-radius:16px;box-shadow:0 8px 30px #0001}
+h2{text-align:center;color:#174b35}
+input{width:100%;padding:14px;margin:9px 0;border:1px solid #ddd;border-radius:8px;font-size:15px}
+button{width:100%;padding:14px;margin-top:12px;border:0;border-radius:8px;background:#174b35;color:white;font-size:16px;font-weight:bold}
+.switch{text-align:center;margin-top:20px;color:#b38a3c;cursor:pointer}
+#message{text-align:center;margin-top:15px;font-size:14px;overflow-wrap:anywhere}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="card">
+
+<h2>I Marketplaces</h2>
+
+<div id="authSection">
+<h3 id="formTitle">Create Account</h3>
+
+<input type="email" id="email" placeholder="Email Address">
+<input type="password" id="password" placeholder="Password (minimum 6 characters)">
+
+<button id="submitBtn">Register</button>
+
+<p class="switch" id="switchBtn">
+Already have an account? Login
+</p>
+</div>
+
+<div id="profileSection" class="hidden">
+<h3>My Account</h3>
+<p id="userEmail"></p>
+<button id="logoutBtn">Logout</button>
+</div>
+
+<p id="message"></p>
+
+</div>
+</div>
+
+<script type="module" src="./firebase.js"></script>
+<script type="module" src="./auth.js"></script>
+
+<script type="module">
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+const submitBtn = document.getElementById("submitBtn");
+const switchBtn = document.getElementById("switchBtn");
+const formTitle = document.getElementById("formTitle");
+const message = document.getElementById("message");
+
+let isLogin = false;
+
+switchBtn.onclick = () => {
+  isLogin = !isLogin;
+  formTitle.textContent = isLogin ? "Login" : "Create Account";
+  submitBtn.textContent = isLogin ? "Login" : "Register";
+  switchBtn.textContent = isLogin
+    ? "New customer? Create account"
+    : "Already have an account? Login";
+  message.textContent = "";
+};
+
+submitBtn.onclick = async () => {
+  const e = email.value.trim();
+  const p = password.value;
+
+  if (!e || !p) {
+    message.textContent = "Please enter email and password.";
+    return;
+  }
+
+  submitBtn.disabled = true;
+  message.textContent = "Please wait...";
+
+  const result = isLogin
+    ? await window.loginUser(e, p)
+    : await window.registerUser(e, p);
+
+  submitBtn.disabled = false;
+
+  if (result.success) {
+    message.textContent = "Success!";
+  } else {
+    message.textContent = result.message;
+  }
+};
+
+document.getElementById("logoutBtn").onclick = async () => {
+  const result = await window.logoutUser();
+  message.textContent = result.success
+    ? "Logged out successfully."
+    : result.message;
+};
+
+window.addEventListener("authChanged", event => {
+  const user = event.detail.user;
+
+  document.getElementById("authSection").classList.toggle("hidden", !!user);
+  document.getElementById("profileSection").classList.toggle("hidden", !user);
+
+  if (user) {
+    document.getElementById("userEmail").textContent = user.email;
+  }
+});
+</script>
+
+</body>
+  </html>
+    
