@@ -24,6 +24,7 @@ function getDB() {
 }
 
 async function sendMessage(token, chatId, text) {
+async function sendMessage(token, chatId, text, replyMarkup = undefined) {
   const response = await fetch(
     `https://api.telegram.org/bot${token}/sendMessage`,
     {
@@ -33,7 +34,8 @@ async function sendMessage(token, chatId, text) {
       },
       body: JSON.stringify({
         chat_id: chatId,
-        text
+        text,
+        ...(replyMarkup ? { reply_markup: replyMarkup } : {})
       })
     }
   );
