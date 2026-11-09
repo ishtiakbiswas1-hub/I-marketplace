@@ -77,3 +77,4 @@ onAuthStateChanged(auth, function(user) {
   );
 });
       
+export { auth };
