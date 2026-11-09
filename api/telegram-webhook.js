@@ -164,6 +164,173 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+// Edit product price
+if (command.startsWith("/editprice ")) {
+  const parts = command.split(/\s+/);
+
+  if (parts.length !== 3) {
+    await sendMessage(
+      token,
+      chatId,
+      "Format:\n/editprice PRODUCT_ID NEW_PRICE"
+    );
+    return res.status(200).json({ ok: true });
+  }
+
+  const productId = parts[1];
+  const newPrice = Number(parts[2]);
+
+  if (
+    !Number.isFinite(newPrice) ||
+    newPrice < 0 ||
+    newPrice > 1000000000
+  ) {
+    await sendMessage(token, chatId, "Invalid price.");
+    return res.status(200).json({ ok: true });
+  }
+
+  const ref = db.collection("products").doc(productId);
+  const doc = await ref.get();
+
+  if (!doc.exists) {
+    await sendMessage(token, chatId, "Product not found.");
+  } else {
+    await ref.update({
+      price: newPrice,
+      updatedAt: FieldValue.serverTimestamp()
+    });
+
+    await sendMessage(
+      token,
+      chatId,
+      `Product price updated!\nNew Price: ${newPrice}`
+    );
+  }
+
+  return res.status(200).json({ ok: true });
+}
+
+// Deactivate product
+if (command.startsWith("/deactivate ")) {
+  const productId = command.split(/\s+/)[1];
+
+  if (!productId) {
+    await sendMessage(token, chatId, "Send Product ID.");
+    return res.status(200).json({ ok: true });
+  }
+
+  const ref = db.collection("products").doc(productId);
+  const doc = await ref.get();
+
+  if (!doc.exists) {
+    await sendMessage(token, chatId, "Product not found.");
+  } else {
+    await ref.update({
+      status: "inactive",
+      updatedAt: FieldValue.serverTimestamp()
+    });
+
+    await sendMessage(token, chatId, "Product deactivated.");
+  }
+
+  return res.status(200).json({ ok: true });
+}
+
+// Activate product
+if (command.startsWith("/activate ")) {
+  const productId = command.split(/\s+/)[1];
+
+  if (!productId) {
+    await sendMessage(token, chatId, "Send Product ID.");
+    return res.status(200).json({ ok: true });
+  }
+
+  const ref = db.collection("products").doc(productId);
+  const doc = await ref.get();
+
+  if (!doc.exists) {
+    await sendMessage(token, chatId, "Product not found.");
+  } else {
+    await ref.update({
+      status: "active",
+      updatedAt: FieldValue.serverTimestamp()
+    });
+
+    await sendMessage(token, chatId, "Product activated.");
+  }
+
+  return res.status(200).json({ ok: true });
+}
+
+// Request product deletion confirmation
+if (command.startsWith("/deleteproduct ")) {
+  const productId = command.split(/\s+/)[1];
+
+  if (!productId) {
+    await sendMessage(token, chatId, "Send Product ID.");
+    return res.status(200).json({ ok: true });
+  }
+
+  const ref = db.collection("products").doc(productId);
+  const doc = await ref.get();
+
+  if (!doc.exists) {
+    await sendMessage(token, chatId, "Product not found.");
+  } else {
+    await sessionRef.set({
+      action: "confirm_delete",
+      productId,
+      updatedAt: FieldValue.serverTimestamp()
+    });
+
+    await sendMessage(
+      token,
+      chatId,
+      "WARNING: Product deletion requested.\n\n" +
+      `Product: ${doc.data().name}\n` +
+      `ID: ${productId}\n\n` +
+      "To confirm, send exactly:\nCONFIRM DELETE\n\n" +
+      "Or send /cancel."
+    );
+  }
+
+  return res.status(200).json({ ok: true });
+}
+
+// Confirm product deletion
+if (session?.action === "confirm_delete") {
+  if (command !== "CONFIRM DELETE") {
+    await sendMessage(
+      token,
+      chatId,
+      "Deletion cancelled. Send /cancel to clear this request."
+    );
+
+    await sessionRef.delete();
+
+    return res.status(200).json({ ok: true });
+  }
+
+  const ref = db.collection("products").doc(session.productId);
+  const doc = await ref.get();
+
+  if (doc.exists) {
+    await ref.delete();
+
+    await sendMessage(
+      token,
+      chatId,
+      "Product deleted successfully."
+    );
+  } else {
+    await sendMessage(token, chatId, "Product not found.");
+  }
+
+  await sessionRef.delete();
+
+  return res.status(200).json({ ok: true });
+      }
+    
     // Product creation wizard
     if (session?.action === "add_product") {
       const value = command.trim();
