@@ -91,7 +91,8 @@ submitBtn.onclick = async () => {
   submitBtn.disabled = false;
 
   if (result.success) {
-    message.textContent = "Success!";
+  window.location.href = "./dashboard.html";
+  return;
   } else {
     message.textContent = result.message;
   }
