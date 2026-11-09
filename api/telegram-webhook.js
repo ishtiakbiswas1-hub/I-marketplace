@@ -94,11 +94,14 @@ export default async function handler(req, res) {
       await sendMessage(
         token,
         chatId,
-        "I Marketplaces Admin Panel\n\n" +
-        "/addproduct - Add a new product\n" +
-        "/products - View latest products\n" +
-        "/cancel - Cancel current action\n" +
-        "/help - Show commands"
+        "/addproduct - Add product\n" +
+"/products - View products\n" +
+"/editprice ID PRICE - Edit price\n" +
+"/activate ID - Activate product\n" +
+"/deactivate ID - Deactivate product\n" +
+"/deleteproduct ID - Delete product\n" +
+"/cancel - Cancel action\n" +
+"/help - Show commands"
       );
 
       return res.status(200).json({ ok: true });
