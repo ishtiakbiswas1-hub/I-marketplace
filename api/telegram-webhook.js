@@ -138,36 +138,54 @@ export default async function handler(req, res) {
     }
 
     if (command === "/products") {
-      const snapshot = await db
-        .collection("products")
-        .orderBy("createdAt", "desc")
-        .limit(10)
-        .get();
+  const snapshot = await db
+    .collection("products")
+    .orderBy("createdAt", "desc")
+    .limit(10)
+    .get();
 
-      if (snapshot.empty) {
-        await sendMessage(token, chatId, "No products found yet.");
-      } else {
-        const lines = snapshot.docs.map((doc, index) => {
-          const p = doc.data();
+  if (snapshot.empty) {
+    await sendMessage(token, chatId, "No products found yet.");
+  } else {
+    await sendMessage(
+      token,
+      chatId,
+      "Latest Products (Maximum 10):"
+    );
 
-          return (
-            `${index + 1}. ${p.name || "Unnamed"}\n` +
-            `Price: ${p.price ?? "N/A"}\n` +
-            `Category: ${p.category || "N/A"}\n` +
-            `Status: ${p.status || "N/A"}\n` +
-            `ID: ${doc.id}`
-          );
-        });
+    for (const doc of snapshot.docs) {
+      const p = doc.data();
+      const productId = doc.id;
 
-        await sendMessage(
-          token,
-          chatId,
-          "Latest Products:\n\n" + lines.join("\n\n")
-        );
-      }
+      const text =
+        `📦 ${p.name || "Unnamed"}\n\n` +
+        `💰 Price: ${p.price ?? "N/A"}\n` +
+        `📂 Category: ${p.category || "N/A"}\n` +
+        `📌 Status: ${p.status || "N/A"}\n\n` +
+        `🆔 Product ID:\n${productId}`;
 
-      return res.status(200).json({ ok: true });
+      await sendMessage(
+        token,
+        chatId,
+        text,
+        {
+          inline_keyboard: [
+            [
+              {
+                text: "📋 Copy Product ID",
+                copy_text: {
+                  text: productId
+                }
+              }
+            ]
+          ]
+        }
+      );
     }
+  }
+
+  return res.status(200).json({ ok: true });
+}
 
 // Edit product price
 if (command.startsWith("/editprice ")) {
