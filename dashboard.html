@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Dashboard - I Marketplaces</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f4f7f3;
+  color:#173c2c;
+}
+header{
+  background:#174b35;
+  color:white;
+  padding:20px;
+  text-align:center;
+}
+.container{
+  max-width:650px;
+  margin:35px auto;
+  padding:15px;
+}
+.card{
+  background:white;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 5px 20px #0001;
+  margin-bottom:20px;
+}
+h2{color:#174b35}
+.info{
+  background:#f3f6f1;
+  padding:15px;
+  border-radius:8px;
+  overflow-wrap:anywhere;
+}
+button{
+  background:#174b35;
+  color:white;
+  padding:13px 20px;
+  border:0;
+  border-radius:8px;
+  width:100%;
+  font-size:16px;
+  margin-top:15px;
+}
+a{color:#b38a3c}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2 style="color:white">I Marketplaces</h2>
+  <p>Customer Dashboard</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Welcome!</h2>
+    <p>Your account is active.</p>
+
+    <h3>Account Information</h3>
+
+    <div class="info">
+      <strong>Email Address:</strong>
+      <p id="userEmail">Loading...</p>
+    </div>
+
+    <button id="logoutBtn">Logout</button>
+  </div>
+
+  <div class="card">
+    <h3>My Account</h3>
+    <p>Account Status: Active</p>
+    <p>Account Type: Customer</p>
+  </div>
+
+  <p style="text-align:center">
+    <a href="./index.html">Back to Home</a>
+  </p>
+
+</div>
+
+<script type="module">
+import { auth } from "./auth.js";
+
+import {
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+const emailElement = document.getElementById("userEmail");
+const logoutBtn = document.getElementById("logoutBtn");
+
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    window.location.replace("./auth.html");
+    return;
+  }
+
+  emailElement.textContent = user.email || "No email available";
+});
+
+logoutBtn.addEventListener("click", async () => {
+  logoutBtn.disabled = true;
+  logoutBtn.textContent = "Logging out...";
+
+  try {
+    await signOut(auth);
+    window.location.replace("./auth.html");
+  } catch (error) {
+    alert(error.message);
+    logoutBtn.disabled = false;
+    logoutBtn.textContent = "Logout";
+  }
+});
+</script>
+
+</body>
+</html>
